@@ -1,102 +1,193 @@
-import Image from "next/image";
+'use client';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import Link from 'next/link';
+import { Heart, Music, ImageIcon, Share2, Calendar, Sparkles, Gift, Zap } from 'lucide-react';
+import { ThemeToggle } from '@/components/theme-toggle';
+import { Confetti } from '@/components/confetti';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [stars, setStars] = useState<{ cx: number; cy: number; r: number; opacity: number; delay: number }[]>([]);
+  const router = useRouter();
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  useEffect(() => {
+    router.prefetch('/create/heartsfilled');
+
+    // Generate stars on client only (prevents hydration mismatch)
+    const generatedStars = Array.from({ length: 100 }).map(() => ({
+      cx: Math.random() * 1000,
+      cy: Math.random() * 1000,
+      r: Math.random() * 1.5,
+      opacity: Math.random() * 0.7 + 0.3,
+      delay: Math.random() * 2,
+    }));
+    setStars(generatedStars);
+  }, [router]);
+
+  const triggerCelebration = () => {
+    setShowConfetti(true);
+    const timer = setTimeout(() => setShowConfetti(false), 3500);
+    return () => clearTimeout(timer);
+  };
+
+  const templates = [
+    {
+      id: 'heartsfilled',
+      name: 'Birthday Special',
+      style: 'Romantic',
+      price: '₹250',
+      image: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)',
+    },
+    {
+      id: 'coming-soon-1',
+      name: 'coming-soon-1t',
+      style: 'Elegant',
+      price: '₹250',
+      image: 'linear-gradient(135deg, #5b21b6 0%, #1e1b4b 100%)',
+    },
+    {
+      id: 'coming-soon-2',
+      name: 'coming-soon-2',
+      style: 'Magical',
+      price: '₹250',
+      image: 'linear-gradient(135deg, #6366f1 0%, #4338ca 100%)',
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Animated Starfield Background */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <svg className="w-full h-full opacity-30" viewBox="0 0 1000 1000">
+          {stars.map((star, i) => (
+            <circle
+              key={i}
+              cx={star.cx}
+              cy={star.cy}
+              r={star.r}
+              fill="white"
+              opacity={star.opacity}
+              className="animate-twinkle"
+              style={{ animationDelay: `${star.delay}s` }}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          ))}
+        </svg>
+      </div>
+
+      {showConfetti && <Confetti />}
+
+      {/* Navigation */}
+      <nav className="sticky top-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+          <div className="text-2xl font-bold text-primary">
+            <span className="inline-block mr-2">◆</span>
+            Onyx Technologies
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="space-x-4">
+              {/* <Button variant="ghost" asChild><a href="#how-it-works">How It Works</a></Button> */}
+              <Button variant="ghost" asChild><a href="#templates">Templates</a></Button>
+              <Button variant="ghost" asChild><a href="#pricing">Pricing</a></Button>
+            </div>
+            <ThemeToggle />
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+      </nav>
+
+      {/* Hero Section */}
+      <section className="relative overflow-hidden px-4 sm:px-6 lg:px-8 py-20 sm:py-32">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-20 right-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-10 left-10 w-72 h-72 bg-accent/5 rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="relative max-w-4xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-6 animate-slide-in-up">
+            <span className="text-sm animate-pulse-glow">✨</span>
+            <span className="text-sm font-medium text-primary">Under the stars, creating magic</span>
+          </div>
+
+          <h1 className="text-5xl sm:text-6xl font-bold text-foreground mb-6 leading-tight animate-slide-in-up" style={{ animationDelay: '0.1s' }}>
+            Create a <span className="text-primary animate-pulse-glow">Surprise Birthday</span> Website in Minutes
+          </h1>
+
+          <p className="text-lg sm:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto animate-slide-in-up" style={{ animationDelay: '0.2s' }}>
+            Turn memories, music, and love into a magical birthday surprise. Design a personalized website with photos, animations, and a heartfelt message powered by Onyx Technologies.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-in-up" style={{ animationDelay: '0.3s' }}>
+            <Button size="lg" asChild className="bg-primary hover:bg-primary/90 text-primary-foreground hover:scale-105 transition-transform duration-300 shadow-lg hover:shadow-xl">
+              <Link href="/templates" onClick={triggerCelebration}>
+                <Gift className="w-5 h-5 mr-2 animate-bounce-happy" />
+                Create a Birthday Surprise
+              </Link>
+            </Button>
+            {/* <Button size="lg" variant="outline" onClick={triggerCelebration} className="hover:scale-105 transition-transform duration-300 bg-transparent">
+              <Sparkles className="w-5 h-5 mr-2 animate-pulse-glow" />
+              See How It Works
+            </Button> */}
+          </div>
+        </div>
+      </section>
+
+      {/* Templates Section */}
+      <section id="templates" className="px-4 sm:px-6 lg:px-8 py-20">
+        <div className="max-w-6xl mx-auto text-center mb-16">
+          <h2 className="text-4xl font-bold text-foreground mb-4">Featured Templates</h2>
+          <p className="text-lg text-muted-foreground">Choose from our most loved designs</p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-8">
+          {templates.map((template, idx) => (
+            <Card key={template.name} className="overflow-hidden hover:shadow-2xl transition-all duration-300 hover:scale-105 animate-slide-in-up hover:border-primary/50" style={{ animationDelay: `${idx * 0.1}s` }}>
+              <div className="w-full h-48 bg-gradient-to-br" style={{ backgroundImage: template.image }} />
+              <CardHeader>
+                <CardTitle className="text-foreground">{template.name}</CardTitle>
+                <CardDescription>{template.style} Style</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex justify-between items-center">
+                  <span className="text-2xl font-bold text-primary animate-pulse-glow">{template.price}</span>
+                  <Button size="sm" asChild>
+                    <Link href={`/create/${template.id}`}>Customize</Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      {/* Pricing CTA */}
+      <section id="pricing" className="px-4 sm:px-6 lg:px-8 py-20 bg-gradient-to-br from-primary/5 to-accent/5">
+        <div className="max-w-2xl mx-auto">
+          <Card className="border-2 border-primary/30 shadow-xl">
+            <CardHeader className="border-b border-border bg-gradient-to-r from-primary/10 to-accent/10">
+              <CardTitle className="text-2xl flex items-center gap-2">
+                <Zap className="w-6 h-6" />
+                Birthday Website
+              </CardTitle>
+              <CardDescription>3-Day Access | No Hidden Fees | By Onyx Technologies</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-8">
+              <div className="text-5xl font-bold text-primary mb-6">₹250</div>
+              <Button size="lg" className="w-full bg-primary hover:bg-primary/90" asChild onClick={triggerCelebration}>
+                <Link href="/create/heartsfilled">
+                  <Gift className="w-5 h-5 mr-2" />
+                  Get Started
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      <footer className="border-t border-border bg-background/50 py-12 text-center text-sm text-muted-foreground">
+        Made with love for unforgettable moments. © {new Date().getFullYear()} Onyx Technologies.
       </footer>
     </div>
   );
