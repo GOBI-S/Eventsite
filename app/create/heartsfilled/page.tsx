@@ -87,7 +87,11 @@ export default function CreatePage() {
 
   //   return id;
   // };
-  const eid = localStorage.getItem("eventId");
+  const [eid, setEventId] = useState<string | null>(null)
+  useEffect(() => {
+  const id = localStorage.getItem("eventId")
+  setEventId(id)
+}, [])
 
   const cleanSlug = (text: string) =>
     text

@@ -1,7 +1,7 @@
 "use client";
 import { getAuth } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +11,11 @@ import { ArrowRight, Lock } from "lucide-react";
 export default function PaymentPage() {
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
-  const eventId = localStorage.getItem("eventId");
+  const [eventId, setEventId] = useState<string | null>(null)
+  useEffect(() => {
+  const id = localStorage.getItem("eventId")
+  setEventId(id)
+}, [])
 
   const handlePayment = async () => {
     if (!(window as any).Razorpay) {
