@@ -134,7 +134,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Templates Section */}
+      {/* Templates Section
       <section id="templates" className="px-4 sm:px-6 lg:px-8 py-20">
         <div className="max-w-6xl mx-auto text-center mb-16">
           <h2 className="text-4xl font-bold text-foreground mb-4">Featured Templates</h2>
@@ -160,7 +160,7 @@ export default function Home() {
             </Card>
           ))}
         </div>
-      </section>
+      </section> */}
 
       {/* Pricing CTA */}
       <section id="pricing" className="px-4 sm:px-6 lg:px-8 py-20 bg-gradient-to-br from-primary/5 to-accent/5">

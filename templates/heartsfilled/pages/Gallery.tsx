@@ -112,12 +112,12 @@ export default function Gallery({ data, next }: GalleryProps) {
 
         {/* Final Button */}
         <div className="mt-12 text-center">
-          <button
+          {/* <button
             onClick={next}
             className="rounded-full bg-gradient-to-r from-pink-500 to-purple-500 px-10 py-3 text-white shadow-lg hover:from-pink-600 hover:to-purple-600"
           >
             Final Surprise 🎁
-          </button>
+          </button> */}
         </div>
       </div>
     </div>

@@ -11,10 +11,7 @@ import { Copy, Check, Eye, RotateCcw, Mail, Heart } from 'lucide-react';
 export default function SuccessClient() {
   const [copied, setCopied] = useState(false);
   const [showConfetti, setShowConfetti] = useState(true);
-  // const params = new URLSearchParams(window.location.search)
-  // const slug = params.get("slug")
-  // const privateLink = `${window.location.origin}/event/${slug}`
-   const searchParams = useSearchParams()
+  const searchParams = useSearchParams()
   const slug = searchParams.get("slug")
 
   const [origin, setOrigin] = useState("")
@@ -32,8 +29,6 @@ export default function SuccessClient() {
     month: 'long',
     day: 'numeric',
     year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
   });
 
   const copyLink = () => {
@@ -43,22 +38,42 @@ export default function SuccessClient() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-blue-50 to-pink-50 overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-pink-100 overflow-hidden relative">
+      {/* Animated Background Balloons */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        {[...Array(15)].map((_, i) => (
+          <div
+            key={`balloon-${i}`}
+            className="absolute rounded-full opacity-20"
+            style={{
+              width: `${40 + (i % 5) * 20}px`,
+              height: `${40 + (i % 5) * 20}px`,
+              backgroundColor: i % 3 === 0 ? '#ec4899' : i % 3 === 1 ? '#f472b6' : '#fbcfe8',
+              left: `${(i * 7) % 100}%`,
+              top: `${(i * 13) % 100}%`,
+              animation: `float ${8 + i}s ease-in-out infinite`,
+              animationDelay: `${i * 0.3}s`,
+            }}
+          />
+        ))}
+      </div>
+
       {/* Confetti Animation */}
       {showConfetti && (
         <div className="fixed inset-0 pointer-events-none z-20">
-          {[...Array(20)].map((_, i) => (
+          {[...Array(40)].map((_, i) => (
             <div
               key={i}
-              className="absolute text-3xl animate-bounce"
+              className="absolute font-bold animate-bounce"
               style={{
+                fontSize: `${20 + Math.random() * 20}px`,
                 left: `${Math.random() * 100}%`,
                 top: `-20px`,
-                animation: `fall ${2 + Math.random() * 2}s linear forwards`,
-                animationDelay: `${Math.random() * 1}s`,
+                animation: `fall ${3 + Math.random() * 2}s linear forwards`,
+                animationDelay: `${Math.random() * 1.5}s`,
               }}
             >
-              {'🎉🎂🎁❤️💝✨'[Math.floor(Math.random() * 6)]}
+              {'🎉🎂🎁🎈💝✨🎊🥳🍰💖🎀🌟'[Math.floor(Math.random() * 12)]}
             </div>
           ))}
         </div>
@@ -71,39 +86,82 @@ export default function SuccessClient() {
             opacity: 0;
           }
         }
+        @keyframes float {
+          0%, 100% {
+            transform: translateY(0px) translateX(0px);
+          }
+          25% {
+            transform: translateY(-20px) translateX(10px);
+          }
+          50% {
+            transform: translateY(-40px) translateX(-10px);
+          }
+          75% {
+            transform: translateY(-20px) translateX(10px);
+          }
+        }
+        @keyframes pulse-glow {
+          0%, 100% {
+            box-shadow: 0 0 20px rgba(236, 72, 153, 0.3);
+          }
+          50% {
+            box-shadow: 0 0 40px rgba(236, 72, 153, 0.6);
+          }
+        }
+        @keyframes bounce-spin {
+          0%, 100% {
+            transform: translateY(0) rotate(0deg);
+          }
+          50% {
+            transform: translateY(-10px) rotate(5deg);
+          }
+        }
+        .pulse-glow {
+          animation: pulse-glow 2s ease-in-out infinite;
+        }
+        .bounce-spin {
+          animation: bounce-spin 1s ease-in-out infinite;
+        }
       `}</style>
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 relative z-10">
         {/* Success Header */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/20 mb-6">
-            <Heart className="w-10 h-10 text-primary animate-pulse" />
+          <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-pink-200 to-pink-100 mb-6 pulse-glow">
+            <span className="text-5xl bounce-spin">🎂</span>
           </div>
-          <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-4 text-balance">
-            Your Birthday Surprise Website is Live! 🎉
+          <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-pink-500 to-pink-600 bg-clip-text text-transparent mb-4 text-balance">
+            Party Time! 🎉
           </h1>
-          <p className="text-xl text-muted-foreground">
-            The magic is ready to be shared. Copy your private link and send it to the birthday person.
+          <p className="text-2xl text-pink-600 font-semibold mb-3">
+            Your Birthday Surprise Website is LIVE! ✨
+          </p>
+          <p className="text-lg text-gray-600">
+            Get ready for an amazing surprise! Copy your magical link and send it to the birthday star. 🌟
           </p>
         </div>
 
         {/* Private Link Card */}
-        <Card className="mb-8 border-2 border-primary/20 shadow-xl">
-          <CardHeader className="border-b border-border bg-gradient-to-r from-primary/5 to-accent/5">
-            <CardTitle className="text-foreground">Your Private Link</CardTitle>
+        <Card className="mb-8 border-2 border-pink-300 shadow-2xl bg-white/90 backdrop-blur">
+          <CardHeader className="border-b-2 border-pink-200 bg-gradient-to-r from-pink-100 to-pink-50">
+            <CardTitle className="text-2xl text-pink-700 flex items-center gap-2">
+              <span>🎁</span> Your Private Link <span>🎈</span>
+            </CardTitle>
           </CardHeader>
           <CardContent className="pt-8 space-y-6">
             <div>
-              <Label className="text-foreground font-semibold mb-3 block">Share this link with the birthday person:</Label>
+              <Label className="text-lg text-pink-600 font-bold mb-3 block flex items-center gap-2">
+                <span>💌</span> Share this magical link with the birthday person:
+              </Label>
               <div className="flex gap-2">
-                <div className="flex-1 bg-muted/50 rounded-lg p-4 border border-border flex items-center">
-                  <code className="text-sm text-foreground break-all font-mono">{privateLink}</code>
+                <div className="flex-1 bg-gradient-to-r from-pink-50 to-white rounded-lg p-4 border-2 border-pink-200 flex items-center">
+                  <code className="text-sm text-gray-700 break-all font-mono font-semibold">{privateLink}</code>
                 </div>
                 <Button
                   onClick={copyLink}
                   size="lg"
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground flex-shrink-0"
+                  className="bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white flex-shrink-0 font-bold"
                 >
                   {copied ? (
                     <Check className="w-5 h-5" />
@@ -112,22 +170,22 @@ export default function SuccessClient() {
                   )}
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                {copied ? 'Link copied to clipboard!' : 'Click to copy the link'}
+              <p className="text-sm text-pink-500 mt-2 font-semibold">
+                {copied ? '✅ Link copied to clipboard!' : '📋 Click to copy the link'}
               </p>
             </div>
 
             {/* Expiry Information */}
-            <div className="bg-accent/10 border border-accent/20 rounded-lg p-6 space-y-2">
+            <div className="bg-gradient-to-r from-pink-100 to-pink-50 border-2 border-pink-300 rounded-xl p-6 space-y-2">
               <div className="flex items-start gap-3">
-                <div className="text-2xl">⏰</div>
+                <div className="text-3xl">⏰</div>
                 <div className="flex-1">
-                  <p className="font-semibold text-foreground">Active Until</p>
-                  <p className="text-sm text-muted-foreground">{expiryDate}</p>
+                  <p className="font-bold text-pink-700 text-lg">Active Until</p>
+                  <p className="text-pink-600 font-semibold text-lg">{expiryDate}</p>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">
-                After this time, the link will no longer be accessible. You can extend access at any time.
+              <p className="text-sm text-pink-600 font-medium">
+                🎊 After this time, the link will no longer be accessible. Keep the party going by extending access anytime!
               </p>
             </div>
 
@@ -135,73 +193,91 @@ export default function SuccessClient() {
             <div className="grid sm:grid-cols-2 gap-3">
               <Button
                 variant="outline"
-                size="sm"
+                size="lg"
                 onClick={() => navigator.share({ url: privateLink, title: 'Birthday Surprise' })}
-                className="w-full"
+                className="w-full bg-white border-2 border-pink-300 text-pink-600 hover:bg-pink-50 font-bold text-base"
               >
-                <Mail className="w-4 h-4 mr-2" />
-                Share
+                <Mail className="w-5 h-5 mr-2" />
+                Share Now 📧
               </Button>
               <Button
-                variant="outline"
-                size="sm"
+                size="lg"
                 asChild
-                className="w-full bg-transparent"
+                className="w-full bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-bold text-base"
               >
                 <Link href={privateLink}>
-                  <Eye className="w-4 h-4 mr-2" />
-                  view
+                  <Eye className="w-5 h-5 mr-2" />
+                  Preview 👀
                 </Link>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                asChild
-                className="w-full bg-transparent"
-              >
-                {/* <Link href="/create">
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  Edit
-                </Link> */}
               </Button>
             </div>
           </CardContent>
         </Card>
 
-
         {/* Next Steps */}
-        <Card>
-          <CardHeader className="border-b border-border bg-gradient-to-r from-secondary/5 to-accent/5">
-            <CardTitle className="text-foreground">What's Next?</CardTitle>
+        <Card className="mb-8 border-2 border-pink-300 shadow-xl bg-white/90 backdrop-blur">
+          <CardHeader className="border-b-2 border-pink-200 bg-gradient-to-r from-pink-100 to-pink-50">
+            <CardTitle className="text-2xl text-pink-700 flex items-center gap-2">
+              <span>🚀</span> What's Next? <span>🎯</span>
+            </CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
-            <div className="space-y-4">
-              <div className="flex gap-4">
-                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold flex-shrink-0">
-                  1
+            <div className="space-y-5">
+              <div className="flex gap-4 p-4 rounded-lg bg-gradient-to-r from-pink-50 to-white border border-pink-200">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-pink-500 to-pink-600 text-white flex items-center justify-center text-xl font-bold flex-shrink-0">
+                  1️⃣
                 </div>
                 <div>
-                  <p className="font-semibold text-foreground">Copy & Share Your Link</p>
-                  <p className="text-sm text-muted-foreground">Send the private link via message, email, or however you prefer.</p>
+                  <p className="font-bold text-pink-700 text-lg">Copy & Share Your Link 🔗</p>
+                  <p className="text-gray-600 text-sm">Send the private link via text, email, or however you prefer. Watch them get surprised!</p>
                 </div>
               </div>
-              <div className="flex gap-4">
-                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold flex-shrink-0">
-                  2
+              <div className="flex gap-4 p-4 rounded-lg bg-gradient-to-r from-pink-50 to-white border border-pink-200">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-pink-500 to-pink-600 text-white flex items-center justify-center text-xl font-bold flex-shrink-0">
+                  2️⃣
                 </div>
                 <div>
-                  <p className="font-semibold text-foreground">Watch Their Reaction</p>
-                  <p className="text-sm text-muted-foreground">Sit back and enjoy their surprise and happiness when they open it.</p>
+                  <p className="font-bold text-pink-700 text-lg">Sit Back & Enjoy 💖</p>
+                  <p className="text-gray-600 text-sm">Watch their reaction and happiness when they open the surprise. Capture those special moments!</p>
                 </div>
               </div>
-              <div className="flex gap-4">
-                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold flex-shrink-0">
-                  3
+              <div className="flex gap-4 p-4 rounded-lg bg-gradient-to-r from-pink-50 to-white border border-pink-200">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-pink-500 to-pink-600 text-white flex items-center justify-center text-xl font-bold flex-shrink-0">
+                  3️⃣
                 </div>
                 <div>
-                  <p className="font-semibold text-foreground">Extend If Needed</p>
-                  <p className="text-sm text-muted-foreground">Keep the site active for more than 3 days with a simple extension.</p>
+                  <p className="font-bold text-pink-700 text-lg">Keep the Celebration Going 🎊</p>
+                  <p className="text-gray-600 text-sm">Need more time? Extend the link anytime with just one click. The party continues!</p>
                 </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Fun Facts Card */}
+        <Card className="mb-8 border-2 border-pink-300 shadow-xl bg-white/90 backdrop-blur">
+          <CardHeader className="border-b-2 border-pink-200 bg-gradient-to-r from-pink-100 to-pink-50">
+            <CardTitle className="text-2xl text-pink-700 flex items-center gap-2">
+              <span>✨</span> Birthday Magic Tips <span>🎪</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="space-y-3">
+              <div className="flex gap-3 items-start">
+                <span className="text-2xl">🎨</span>
+                <p className="text-gray-700"><span className="font-bold text-pink-600">Customize Everything:</span> Add photos, videos, and personal messages to make it extra special!</p>
+              </div>
+              <div className="flex gap-3 items-start">
+                <span className="text-2xl">📱</span>
+                <p className="text-gray-700"><span className="font-bold text-pink-600">Mobile Friendly:</span> Works perfectly on phones, tablets, and computers!</p>
+              </div>
+              <div className="flex gap-3 items-start">
+                <span className="text-2xl">🔐</span>
+                <p className="text-gray-700"><span className="font-bold text-pink-600">Private & Secure:</span> Only those with the link can see your surprise!</p>
+              </div>
+              <div className="flex gap-3 items-start">
+                <span className="text-2xl">🎯</span>
+                <p className="text-gray-700"><span className="font-bold text-pink-600">Time It Right:</span> Send the link at exactly the right moment for maximum surprise effect!</p>
               </div>
             </div>
           </CardContent>
@@ -209,19 +285,23 @@ export default function SuccessClient() {
 
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 mt-8">
-          <Button size="lg" asChild className="flex-1 bg-primary hover:bg-primary/90">
-            <Link href="/templates">Create Another</Link>
+          <Button size="lg" asChild className="flex-1 bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-bold text-base">
+            <Link href="/templates">Create Another 🎁</Link>
           </Button>
-          <Button size="lg" variant="outline" asChild className="flex-1 bg-transparent">
-            <a href="https://yourdomain.com">Visit Home</a>
+          <Button size="lg" variant="outline" asChild className="flex-1 border-2 border-pink-300 text-pink-600 hover:bg-pink-50 font-bold text-base">
+            <a href="/">Back Home 🏠</a>
           </Button>
         </div>
 
         {/* Footer Message */}
-        <div className="mt-12 p-6 rounded-lg bg-secondary/5 border border-secondary/20 text-center">
-          <p className="text-muted-foreground">
-            Have questions? Our support team is here to help at <span className="text-primary font-medium">support@surprise.com</span>
+        <div className="mt-12 p-6 rounded-xl bg-gradient-to-r from-pink-100 to-pink-50 border-2 border-pink-300 text-center shadow-lg">
+          <p className="text-pink-700 font-bold text-lg mb-2">
+            🎉 Happy Birthday! 🥳
           </p>
+          <p className="text-gray-700">
+            Have questions? Our support team is here to help at <span className="text-pink-600 font-bold">founder@onyxtechnologies.tech</span> 💌
+          </p>
+          <p className="text-sm text-pink-600 mt-3">Made with 💖 to celebrate your special day!</p>
         </div>
       </div>
     </div>
