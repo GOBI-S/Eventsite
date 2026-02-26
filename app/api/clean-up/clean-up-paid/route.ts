@@ -11,24 +11,61 @@ export async function GET() {
 
     const now = new Date()
 
-    // 1️⃣ Find expired events (3 day expiry)
+    let tempDeleted = 0
+    let paidDeleted = 0
+
+    // ==========================
+    // 1️⃣ TEMP MEDIA CLEANUP (24h unpaid)
+    // ==========================
+
+    const tempCutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+
+    const expiredTempMedia = await Datapv.find({
+      paid: false,
+      createdAt: { $lte: tempCutoff }
+    })
+
+    for (const media of expiredTempMedia) {
+
+      try {
+
+        await cloudinary.uploader.destroy(
+          media.publicId,
+          {
+            resource_type:
+              media.type === "audio"
+                ? "video"
+                : "image"
+          }
+        )
+
+        await Datapv.deleteOne({ _id: media._id })
+
+        tempDeleted++
+
+      } catch (err) {
+        console.error("Temp media delete failed:", media.publicId, err)
+      }
+    }
+
+
+    // ==========================
+    // 2️⃣ PAID EVENT CLEANUP (3 day expiry)
+    // ==========================
+
     const expiredEvents = await Event.find({
       expiresAt: { $lte: now }
     })
-
-    let deletedMediaCount = 0
 
     for (const event of expiredEvents) {
 
       try {
 
-        // 2️⃣ Find all paid media for this event
         const mediaList = await Datapv.find({
           eventId: event._id,
           paid: true
         })
 
-        // 3️⃣ Delete media from Cloudinary
         for (const media of mediaList) {
 
           try {
@@ -43,38 +80,37 @@ export async function GET() {
               }
             )
 
-            deletedMediaCount++
+            paidDeleted++
 
           } catch (cloudErr) {
-            console.error("Cloud delete failed:", media.publicId, cloudErr)
+            console.error("Paid media delete failed:", media.publicId, cloudErr)
           }
         }
 
-        // 4️⃣ Remove Datapv records
         await Datapv.deleteMany({
           eventId: event._id,
           paid: true
         })
 
-        console.log("Media cleaned for event:", event._id)
+        console.log("Cleaned paid media for event:", event._id)
 
       } catch (err) {
-        console.error("Event cleanup failed:", event._id, err)
+        console.error("Paid cleanup failed for event:", event._id, err)
       }
     }
 
     return Response.json({
       success: true,
-      mediaDeleted: deletedMediaCount
+      tempDeleted,
+      paidDeleted
     })
 
   } catch (err) {
 
-    console.error("Paid cleanup failed:", err)
+    console.error("Daily cleanup failed:", err)
 
     return Response.json({
       success: false
     }, { status: 500 })
-
   }
 }
