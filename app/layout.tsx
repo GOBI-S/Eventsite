@@ -3,7 +3,6 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { ThemeProvider } from '@/components/theme-provider'
-import "@/lib/cron/cleanup"
 import './globals.css'
 import Script from "next/script"
 
@@ -13,7 +12,7 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: 'Onyx Technologies - Birthday Website Builder',
   description: 'Create magical birthday surprise websites with Onyx Technologies',
-  generator: 'v0.app',
+  generator: 'Next.js',
   icons: {
     icon: [
       {
