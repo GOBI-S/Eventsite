@@ -1,6 +1,6 @@
 'use client';
-
-import { useState } from 'react';
+import { useSearchParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,8 +11,23 @@ import { Copy, Check, Eye, RotateCcw, Mail, Heart } from 'lucide-react';
 export default function SuccessPage() {
   const [copied, setCopied] = useState(false);
   const [showConfetti, setShowConfetti] = useState(true);
+  // const params = new URLSearchParams(window.location.search)
+  // const slug = params.get("slug")
+  // const privateLink = `${window.location.origin}/event/${slug}`
+   const searchParams = useSearchParams()
+  const slug = searchParams.get("slug")
 
-  const privateLink = 'yourdomain.com/sarah-birthday?key=abc123def456';
+  const [origin, setOrigin] = useState("")
+
+  useEffect(() => {
+    setOrigin(window.location.origin)
+  }, [])
+
+  if (!slug) {
+    return <div className="p-10 text-center">Invalid payment session</div>
+  }
+
+  const privateLink = `${origin}/event/${slug}`
   const expiryDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
     month: 'long',
     day: 'numeric',
@@ -133,7 +148,7 @@ export default function SuccessPage() {
                 asChild
                 className="w-full bg-transparent"
               >
-                <Link href={`https://${privateLink}`}>
+                <Link href={privateLink}>
                   <Eye className="w-4 h-4 mr-2" />
                   view
                 </Link>

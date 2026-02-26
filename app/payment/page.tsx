@@ -1,50 +1,107 @@
-"use client"
-
-import React, { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import Link from "next/link"
-import { ArrowRight, Lock } from "lucide-react"
+"use client";
+import { getAuth } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
+import { ArrowRight, Lock } from "lucide-react";
 
 export default function PaymentPage() {
-  const router = useRouter()
-  const [isProcessing, setIsProcessing] = useState(false)
+  const router = useRouter();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const eventId = localStorage.getItem("eventId");
 
   const handlePayment = async () => {
-  if (!(window as any).Razorpay) {
-    alert("Razorpay SDK not loaded. Please refresh.")
-    return
-  }
+    if (!(window as any).Razorpay) {
+      alert("Razorpay SDK not loaded. Please refresh.");
+      return;
+    }
 
-  const res = await fetch("/api/razorpay/order", { method: "POST" })
-  const order = await res.json()
+    setIsProcessing(true);
 
-  const options = {
-    key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
-    amount: order.amount,
-    currency: "INR",
-    name: "EventSite",
-    description: "Birthday Event Website",
-    order_id: order.id,
+    try {
+      const res = await fetch("/api/razorpay/order", { method: "POST" });
+      const order = await res.json();
 
-    handler: async function (response: any) {
-      await fetch("/api/razorpay/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(response),
-      })
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
+        amount: order.amount,
+        currency: "INR",
+        name: "EventSite",
+        description: "Birthday Event Website",
+        order_id: order.id,
 
-      router.push("/success")
-    },
+        handler: async function (response: any) {
+          const user = auth.currentUser;
 
-    theme: { color: "#ec4899" },
-  }
+          if (!user) {
+            alert("Login expired");
+            return;
+          }
 
-  const rzp = new (window as any).Razorpay(options)
-  rzp.open()
-}
+          // verify payment
+          await fetch("/api/razorpay/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(response),
+          });
 
+          // get draft (contains CLOUDINARY URLS)
+          const draft = localStorage.getItem("birthdayDraft");
+          if (!draft) {
+            alert("No event data found");
+            return;
+          }
+
+          const parsed = JSON.parse(draft);
+
+          // save event
+          const saveRes = await fetch("/api/events/create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ...parsed,
+              ownerUid: user.uid,
+              eventId: eventId,
+
+              payment: {
+                orderId: response.razorpay_order_id,
+                paymentId: response.razorpay_payment_id,
+                signature: response.razorpay_signature,
+                status: "paid",
+                amount: order.amount,
+              },
+            }),
+          });
+          const saved = await saveRes.json();
+          console.log("Saved response:", saved);
+          await fetch("/api/events/mark-paid", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              eventId: localStorage.getItem("eventId"),
+              ownerUid: user.uid,
+            }),
+          });
+
+          localStorage.removeItem("birthdayDraft");
+
+          router.push("/success?slug=" + saved.event.slug);
+        },
+        theme: { color: "#ec4899" },
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      console.error(err);
+      alert("Payment failed.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-blue-50 to-pink-50">
@@ -86,7 +143,7 @@ export default function PaymentPage() {
               >
                 {isProcessing
                   ? "Processing..."
-                  : "Pay ₹250 & Create My Birthday Website"}
+                  : "Pay ₹205 & Create My Birthday Website"}
               </Button>
             </CardContent>
           </Card>
@@ -101,20 +158,24 @@ export default function PaymentPage() {
             <CardContent className="space-y-4">
               <div className="flex justify-between text-sm">
                 <span>Subtotal</span>
-                <span>₹250.00</span>
+                <span>₹245.00</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span>Tax</span>
-                <span>₹0.00</span>
+                <span>₹5.00</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>Coupoun</span>
+                <span>- ₹45.00</span>
               </div>
               <div className="border-t pt-3 flex justify-between">
                 <span className="font-semibold">Total</span>
-                <span className="text-2xl font-bold text-primary">₹250.00</span>
+                <span className="text-2xl font-bold text-primary">₹205.00</span>
               </div>
             </CardContent>
           </Card>
         </div>
       </div>
     </div>
-  )
+  );
 }

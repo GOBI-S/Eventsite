@@ -121,9 +121,7 @@ export default function Message({ data, next }: MessageProps) {
                       </motion.span>
                     ))}
                   </p>
-                </div>
-
-                <div className="text-center">
+                  <div className="text-center">
                   <button
                     onClick={next}
                     className="mt-6 rounded-full bg-gradient-to-r from-rose-500 to-pink-600 pt-5 mt-10 px-8 py-3 text-white font-semibold shadow-lg hover:from-rose-600 hover:to-pink-700 transform hover:scale-110 transition-all duration-200"
@@ -131,6 +129,9 @@ export default function Message({ data, next }: MessageProps) {
                     View Memories 📸
                   </button>
                 </div>
+                </div>
+
+                
               </motion.div>
             )}
           </div>

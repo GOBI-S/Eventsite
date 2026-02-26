@@ -17,17 +17,44 @@ interface CreatorData {
   birthdayDate: string;
   message: string;
   slug: string;
-  photos: File[];
-  music: File | null;
+  photos: { url: string; public_id: string }[];
+  music: {
+    url: string;
+    public_id: string;
+  } | null;
 }
 
 export default function CreatePage() {
+  const [isUploading, setIsUploading] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  useEffect(() => {
+    const createEvent = async () => {
+      if (!user) return;
+
+      const existing = localStorage.getItem("eventId");
+      if (existing) return;
+
+      const res = await fetch("/api/events/init", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ownerUid: user.uid }),
+      });
+
+      const data = await res.json();
+      localStorage.setItem("eventId", data.eventId);
+    };
+
+    createEvent();
+  }, [user]);
+
   const router = useRouter();
   const photoInputRef = useRef<HTMLInputElement>(null);
   const musicInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
       if (!user) router.push("/login");
+      else setUser(user);
     });
     return () => unsub();
   }, [router]);
@@ -50,6 +77,17 @@ export default function CreatePage() {
   useEffect(() => {
     localStorage.setItem("birthdayDraft", JSON.stringify(formData));
   }, [formData]);
+  //   const getEventId = () => {
+  //   let id = localStorage.getItem("eventId");
+
+  //   if (!id) {
+  //     id = crypto.randomUUID();
+  //     localStorage.setItem("eventId", id);
+  //   }
+
+  //   return id;
+  // };
+  const eid = localStorage.getItem("eventId");
 
   const cleanSlug = (text: string) =>
     text
@@ -68,40 +106,157 @@ export default function CreatePage() {
       ...(name === "birthdayPersonName" && { slug: cleanSlug(value) }),
     }));
   };
-  const [user, setUser] = useState<any>(null);
 
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      if (!u) router.push("/login");
-      else setUser(u);
-    });
-    return () => unsub();
-  }, [router]);
+  // useEffect(() => {
+  //   const unsub = onAuthStateChanged(auth, (u) => {
+  //     if (!u) router.push("/login");
+  //     else setUser(u);
+  //   });
+  //   return () => unsub();
+  // }, [router]);
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    setFormData((prev) => ({
-      ...prev,
-      photos: [...prev.photos, ...files].slice(0, 8),
-    }));
+    if (!files.length) return;
+    setIsUploading(true);
+
+    if (!user) {
+      alert("Login expired");
+      return;
+    }
+
+    const remaining = 8 - formData.photos.length;
+    if (remaining <= 0) {
+      alert("Maximum 8 photos allowed");
+      return;
+    }
+
+    const allowedFiles = files.slice(0, remaining);
+
+    for (const file of allowedFiles) {
+      console.log("EVENT ID SENDING:", eid);
+      const body = new FormData();
+      body.append("file", file);
+      body.append("ownerUid", user.uid); // ⭐ REQUIRED
+      body.append("eventId", eid || ""); // ⭐ REQUIRED
+      body.append("type", "image"); // ⭐ REQUIRED
+
+      try {
+        const res = await fetch("/api/events/upload", {
+          method: "POST",
+          body,
+        });
+
+        const data = await res.json();
+
+        if (data.url) {
+          setFormData((prev) => ({
+            ...prev,
+            photos: [
+              ...prev.photos,
+              {
+                url: data.url,
+                public_id: data.publicId,
+              },
+            ],
+          }));
+        }
+      } catch (err) {
+        console.error("Upload failed", err);
+      } finally {
+        setIsUploading(false);
+      }
+    }
+
+    e.target.value = "";
   };
 
-  const handleMusicUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMusicUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setFormData((prev) => ({ ...prev, music: file }));
+    setIsUploading(true);
+
+    if (!user) {
+      alert("Login expired");
+      return;
+    }
+
+    const body = new FormData();
+    body.append("file", file);
+    body.append("ownerUid", user.uid); // ⭐ REQUIRED
+    body.append("eventId", eid || ""); // ⭐ REQUIRED
+    body.append("type", "audio"); // ⭐ REQUIRED
+
+    try {
+      const res = await fetch("/api/events/upload", {
+        method: "POST",
+        body,
+      });
+
+      const data = await res.json();
+
+      if (data.url) {
+        setFormData((prev) => ({
+          ...prev,
+          music: {
+            url: data.url,
+            public_id: data.publicId,
+          },
+        }));
+      }
+    } catch (err) {
+      console.error("Music upload failed", err);
+    } finally {
+      setIsUploading(false);
+    }
+
+    e.target.value = "";
   };
 
-  const handleDeletePhoto = (index: number) => {
+  const handleDeletePhoto = async (index: number) => {
+    const photo = formData.photos[index];
+
+    try {
+      await fetch("/api/events/delete-media", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          public_id: photo.public_id,
+          type: "image",
+        }),
+      });
+    } catch (err) {
+      console.error("Delete failed", err);
+    }
+
     setFormData((prev) => ({
       ...prev,
       photos: prev.photos.filter((_, i) => i !== index),
     }));
   };
 
-  const handleDeleteMusic = () => {
-    setFormData((prev) => ({ ...prev, music: null }));
+  const handleDeleteMusic = async () => {
+    if (!formData.music) return;
+
+    try {
+      await fetch("/api/events/delete-media", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          public_id: formData.music.public_id,
+          type: "audio",
+        }),
+      });
+    } catch (err) {
+      console.error("Delete music failed", err);
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      music: null,
+    }));
   };
+
   const handleLogout = async () => {
     await signOut(auth);
     router.push("/login");
@@ -113,6 +268,17 @@ export default function CreatePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50">
+      {isUploading && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex flex-col items-center justify-center">
+          <div className="animate-spin h-16 w-16 border-4 border-white border-t-transparent rounded-full mb-6" />
+          <h2 className="text-white text-xl font-semibold">
+            Uploading your memories...
+          </h2>
+          <p className="text-white/70 text-sm mt-2">
+            Please don’t close this page
+          </p>
+        </div>
+      )}
       {/* Animated confetti background - responsive positioning */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div
@@ -186,7 +352,9 @@ export default function CreatePage() {
                   <p className="font-semibold text-slate-800 text-sm sm:text-base">
                     {user.displayName || "User"}
                   </p>
-                  <p className="text-xs sm:text-sm text-slate-500">{user.email}</p>
+                  <p className="text-xs sm:text-sm text-slate-500">
+                    {user.email}
+                  </p>
                 </div>
                 <button
                   onClick={handleLogout}
@@ -317,14 +485,11 @@ export default function CreatePage() {
                         className="relative rounded-lg overflow-hidden shadow-lg border-2 border-pink-200 hover:border-pink-500 transition-colors transform hover:scale-105 group"
                       >
                         <img
-                          src={
-                            typeof photo === "string"
-                              ? photo
-                              : URL.createObjectURL(photo)
-                          }
+                          src={photo.url}
                           alt={`Memory ${idx + 1}`}
                           className="w-full h-20 sm:h-24 object-cover"
                         />
+
                         <button
                           onClick={() => handleDeletePhoto(idx)}
                           className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
