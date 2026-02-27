@@ -36,9 +36,9 @@ export default function HeartsFilledTemplate({ data }: TemplateWrapperProps) {
   }
 
   const pages = [
-    <Intro data={data} next={() => goToPage(1)} />,
-    <Message data={data} next={() => goToPage(2)} />,
-    <Gallery data={data} next={() => goToPage(2)} />,
+    <Intro key="intro" data={data} next={() => goToPage(1)} />,
+    <Message key="message" data={data} next={() => goToPage(2)} />,
+    <Gallery key="gallery" data={data} next={() => goToPage(2)} />, // This stays on gallery or you can remove the next button
   ]
 
   return (
