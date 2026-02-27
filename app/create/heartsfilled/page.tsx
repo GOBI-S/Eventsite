@@ -87,11 +87,11 @@ export default function CreatePage() {
 
   //   return id;
   // };
-  const [eid, setEventId] = useState<string | null>(null)
+  const [eid, setEventId] = useState<string | null>(null);
   useEffect(() => {
-  const id = localStorage.getItem("eventId")
-  setEventId(id)
-}, [])
+    const id = localStorage.getItem("eventId");
+    setEventId(id);
+  }, []);
 
   const cleanSlug = (text: string) =>
     text
@@ -269,6 +269,18 @@ export default function CreatePage() {
   const goToPreview = () => {
     router.push("/preview/heartsfilled");
   };
+  const hasMinimumPhotos = formData.photos.length >= 3;
+  const hasMusic = !!formData.music;
+
+  const canProceed =
+    formData.birthdayPersonName &&
+    formData.fromName &&
+    formData.birthdayDate &&
+    formData.message &&
+    hasMinimumPhotos &&
+    hasMusic &&
+    !isUploading &&
+    eid;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50">
@@ -394,6 +406,7 @@ export default function CreatePage() {
                 <Input
                   name="birthdayPersonName"
                   placeholder="Who's the birthday star?"
+                  required
                   value={formData.birthdayPersonName}
                   onChange={handleInputChange}
                   className="border-2 border-rose-200 focus:border-rose-500 h-10 sm:h-12 text-sm sm:text-lg hover:border-rose-300 transition-colors"
@@ -407,6 +420,7 @@ export default function CreatePage() {
                   name="fromName"
                   placeholder="Your name"
                   value={formData.fromName}
+                  required
                   onChange={handleInputChange}
                   className="border-2 border-rose-200 focus:border-rose-500 h-10 sm:h-12 text-sm sm:text-lg hover:border-rose-300 transition-colors"
                 />
@@ -418,6 +432,7 @@ export default function CreatePage() {
                 <Input
                   type="date"
                   name="birthdayDate"
+                  required
                   value={formData.birthdayDate}
                   onChange={handleInputChange}
                   className="border-2 border-rose-200 focus:border-rose-500 h-10 sm:h-12 hover:border-rose-300 transition-colors text-sm sm:text-lg"
@@ -437,6 +452,7 @@ export default function CreatePage() {
               <Textarea
                 name="message"
                 placeholder="Write your heartfelt birthday message..."
+                required
                 value={formData.message}
                 onChange={handleInputChange}
                 rows={5}
@@ -470,6 +486,7 @@ export default function CreatePage() {
                 </p>
                 <input
                   ref={photoInputRef}
+                  required
                   type="file"
                   multiple
                   accept="image/*"
@@ -564,10 +581,28 @@ export default function CreatePage() {
               👀 Preview Experience
             </Button>
             <Button
-              className="flex-1 h-10 sm:h-12 text-xs sm:text-base bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white shadow-xl font-semibold transform hover:scale-105 transition-transform"
-              asChild
+              className="flex-1 h-10 sm:h-12 text-xs sm:text-base bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow-xl font-semibold"
+              disabled={!canProceed}
+              onClick={() => {
+                if (isUploading) {
+                  alert("Please wait until uploads finish");
+                  return;
+                }
+
+                if (!hasMinimumPhotos) {
+                  alert("Please upload at least 3 photos");
+                  return;
+                }
+
+                if (!hasMusic) {
+                  alert("Please upload a music file");
+                  return;
+                }
+
+                router.push("/payment");
+              }}
             >
-              <Link href="/payment">Proceed to Payment ✨</Link>
+              Proceed to Payment ✨
             </Button>
           </div>
         </div>
